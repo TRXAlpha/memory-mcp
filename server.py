@@ -53,4 +53,4 @@ async def check_auth(request: Request, call_next):
     return await call_next(request)
 
 
-app.mount("/", mcp.sse_app())
+app.mount("/", mcp.streamable_http_app())
