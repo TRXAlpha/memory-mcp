@@ -1,7 +1,7 @@
 import os
-from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from graphiti_core import Graphiti
 from mcp.server.fastmcp import FastMCP
 
@@ -17,6 +17,7 @@ graphiti = Graphiti(
 
 mcp = FastMCP("agent-memory")
 
+
 @mcp.tool()
 async def write_memory(text: str, source_description: str = "agent_decision") -> str:
     """Log a decision, event, or fact into the graph memory."""
@@ -27,11 +28,13 @@ async def write_memory(text: str, source_description: str = "agent_decision") ->
     )
     return "stored"
 
+
 @mcp.tool()
 async def query_graph(query: str) -> str:
     """Search graph memory for relevant facts/decisions/context."""
     results = await graphiti.search(query)
     return "\n".join(str(r) for r in results[:10])
+
 
 @mcp.tool()
 async def get_related(entity: str) -> str:
@@ -39,12 +42,15 @@ async def get_related(entity: str) -> str:
     results = await graphiti.search(entity)
     return "\n".join(str(r) for r in results[:15])
 
+
 app = FastAPI()
 
+
 @app.middleware("http")
-async def check_auth(request, call_next):
+async def check_auth(request: Request, call_next):
     if request.headers.get("Authorization") != f"Bearer {AUTH_TOKEN}":
-        raise HTTPException(401, "unauthorized")
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
     return await call_next(request)
+
 
 app.mount("/", mcp.sse_app())
