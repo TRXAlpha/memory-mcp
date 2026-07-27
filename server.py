@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from graphiti_core import Graphiti
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 load_dotenv()
 
@@ -16,7 +17,14 @@ graphiti = Graphiti(
     os.environ["NEO4J_PASSWORD"],
 )
 
-mcp = FastMCP("agent-memory")
+mcp = FastMCP(
+    "agent-memory",
+    host="0.0.0.0",
+    transport_security=TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=["*"],
+    ),
+)
 
 
 @mcp.tool()
