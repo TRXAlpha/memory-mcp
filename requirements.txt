@@ -1,0 +1,6 @@
+graphiti-core
+mcp
+fastapi
+uvicorn
+python-dotenv
+openai
