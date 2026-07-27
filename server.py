@@ -21,8 +21,7 @@ mcp = FastMCP(
     "agent-memory",
     host="0.0.0.0",
     transport_security=TransportSecuritySettings(
-        enable_dns_rebinding_protection=True,
-        allowed_hosts=["*"],
+        enable_dns_rebinding_protection=False,
     ),
 )
 
