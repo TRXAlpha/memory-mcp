@@ -1,4 +1,5 @@
 import os
+import contextlib
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -43,7 +44,18 @@ async def get_related(entity: str) -> str:
     return "\n".join(str(r) for r in results[:15])
 
 
-app = FastAPI()
+# FastMCP's streamable_http_app needs its session_manager task group
+# started under a live lifespan. Mounting it into FastAPI doesn't do
+# this automatically -> must wire the sub-app's lifespan into the
+# parent app's lifespan manually, or requests 500 with
+# "Task group is not initialized."
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with mcp.session_manager.run():
+        yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.middleware("http")
